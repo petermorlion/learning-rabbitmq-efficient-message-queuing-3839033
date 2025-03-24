@@ -1,5 +1,5 @@
-# COURSENAME
-This is the repository for the LinkedIn Learning course `course-name`. The full course is available from [LinkedIn Learning][lil-course-url].
+# Learning RabbitMQ: Efficient Message Queuing
+This is the repository for the LinkedIn Learning course `Learning RabbitMQ: Efficient Message Queuing`. The full course is available from [LinkedIn Learning][lil-course-url].
 
 ![lil-thumbnail-url]
 
