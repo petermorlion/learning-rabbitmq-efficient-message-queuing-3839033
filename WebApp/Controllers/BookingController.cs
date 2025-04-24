@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using RabbitMQ.Client;
+using System.Text;
 
 namespace ExploreCalifornia.WebApp.Controllers
 {
@@ -15,7 +17,20 @@ namespace ExploreCalifornia.WebApp.Controllers
             var email= Request.Form["email"];
             var needsTransport = Request.Form["transport"] == "on";
 
-            // Send messages here...
+            var factory = new ConnectionFactory();
+            factory.Uri = new Uri("amqp://guest:guest@localhost:5672");
+            var connection = await factory.CreateConnectionAsync();
+            var channel = await connection.CreateChannelAsync();
+
+            await channel.ExchangeDeclareAsync("webappExchange", ExchangeType.Fanout, true);
+
+            var message = $"{tourname};{name};{email}";
+            var bytes = Encoding.UTF8.GetBytes(message);
+            var props = new BasicProperties();
+            await channel.BasicPublishAsync("webappExchange", "", false, props, bytes);
+
+            await channel.CloseAsync();
+            await connection.CloseAsync();
 
             return Redirect($"/BookingConfirmed?tourname={tourname}&name={name}&email={email}");
         }
