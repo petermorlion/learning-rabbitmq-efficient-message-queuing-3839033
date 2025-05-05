@@ -7,13 +7,13 @@ var connection = await factory.CreateConnectionAsync();
 var channel = await connection.CreateChannelAsync();
 
 await channel.QueueDeclareAsync("emailServiceQueue", true, false, false);
-await channel.QueueBindAsync("emailServiceQueue", "webappExchange", "");
+await channel.QueueBindAsync("emailServiceQueue", "webappExchange", "tour.booked");
 
 var consumer = new AsyncEventingBasicConsumer(channel);
 consumer.ReceivedAsync += async (sender, eventArgs) =>
 {
     var msg = System.Text.Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-    Console.WriteLine(msg);
+    Console.WriteLine($"{eventArgs.RoutingKey} : ${msg}");
 };
 
 await channel.BasicConsumeAsync("emailServiceQueue", true, consumer);
