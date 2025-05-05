@@ -45,8 +45,6 @@ namespace ExploreCalifornia.WebApp.Controllers
             var connection = await factory.CreateConnectionAsync();
             var channel = await connection.CreateChannelAsync();
 
-            await channel.ExchangeDeclareAsync("webappExchange", ExchangeType.Direct, true);
-
             var bytes = Encoding.UTF8.GetBytes(message);
             var props = new BasicProperties();
             await channel.BasicPublishAsync("webappExchange", routingKey, false, props, bytes);

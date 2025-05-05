@@ -1,3 +1,5 @@
+using RabbitMQ.Client;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -23,5 +25,16 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();
+
+var factory = new ConnectionFactory();
+factory.Uri = new Uri("amqp://guest:guest@localhost:5672");
+var connection = await factory.CreateConnectionAsync();
+var channel = await connection.CreateChannelAsync();
+
+await channel.ExchangeDeclareAsync("webappExchange", ExchangeType.Direct, true);
+
+await channel.CloseAsync();
+await connection.CloseAsync();
+
 
 app.Run();
