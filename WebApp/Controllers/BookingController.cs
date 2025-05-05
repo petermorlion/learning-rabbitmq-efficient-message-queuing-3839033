@@ -17,20 +17,8 @@ namespace ExploreCalifornia.WebApp.Controllers
             var email= Request.Form["email"];
             var needsTransport = Request.Form["transport"] == "on";
 
-            var factory = new ConnectionFactory();
-            factory.Uri = new Uri("amqp://guest:guest@localhost:5672");
-            var connection = await factory.CreateConnectionAsync();
-            var channel = await connection.CreateChannelAsync();
-
-            await channel.ExchangeDeclareAsync("webappExchange", ExchangeType.Fanout, true);
-
             var message = $"{tourname};{name};{email}";
-            var bytes = Encoding.UTF8.GetBytes(message);
-            var props = new BasicProperties();
-            await channel.BasicPublishAsync("webappExchange", "", false, props, bytes);
-
-            await channel.CloseAsync();
-            await connection.CloseAsync();
+            await SendMessage("tour.booked", message);
 
             return Redirect($"/BookingConfirmed?tourname={tourname}&name={name}&email={email}");
         }
@@ -44,9 +32,27 @@ namespace ExploreCalifornia.WebApp.Controllers
             var email = Request.Form["email"];
             var cancelReason = Request.Form["reason"];
 
-            // Send cancel message here
+            var message = $"{tourname};{name};{email};{cancelReason}";
+            await SendMessage("tour.canceled", message);
 
             return Redirect($"/BookingCanceled?tourname={tourname}&name={name}");
+        }
+
+        private async Task SendMessage(string routingKey, string message)
+        {
+            var factory = new ConnectionFactory();
+            factory.Uri = new Uri("amqp://guest:guest@localhost:5672");
+            var connection = await factory.CreateConnectionAsync();
+            var channel = await connection.CreateChannelAsync();
+
+            await channel.ExchangeDeclareAsync("webappExchange", ExchangeType.Direct, true);
+
+            var bytes = Encoding.UTF8.GetBytes(message);
+            var props = new BasicProperties();
+            await channel.BasicPublishAsync("webappExchange", routingKey, false, props, bytes);
+
+            await channel.CloseAsync();
+            await connection.CloseAsync();
         }
     }
 }
