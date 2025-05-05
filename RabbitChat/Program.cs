@@ -6,12 +6,15 @@ factory.Uri = new Uri("amqp://guest:guest@localhost:5672");
 var connection = await factory.CreateConnectionAsync();
 var channel = await connection.CreateChannelAsync();
 
-var exchangeName = "chat";
+Console.WriteLine("Please specify a chat room: ");
+var chatRoomName = Console.ReadLine();
+
+var exchangeName = "chat2";
 var queueName = Guid.NewGuid().ToString();
 
-await channel.ExchangeDeclareAsync(exchangeName, ExchangeType.Fanout);
+await channel.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct);
 await channel.QueueDeclareAsync(queueName, true, true, true);
-await channel.QueueBindAsync(queueName, exchangeName, "");
+await channel.QueueBindAsync(queueName, exchangeName, chatRoomName);
 
 var consumer = new AsyncEventingBasicConsumer(channel);
 consumer.ReceivedAsync += async (sender, eventArgs) =>
@@ -27,7 +30,7 @@ while (input != null)
 {
     var bytes = System.Text.Encoding.UTF8.GetBytes(input);
     var props = new BasicProperties();
-    await channel.BasicPublishAsync(exchangeName, "", false, props, bytes);
+    await channel.BasicPublishAsync(exchangeName, chatRoomName, false, props, bytes);
     input = Console.ReadLine();
 }
 
