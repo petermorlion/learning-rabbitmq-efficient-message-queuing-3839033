@@ -18,7 +18,13 @@ namespace ExploreCalifornia.WebApp.Controllers
             var needsTransport = Request.Form["transport"] == "on";
 
             var message = $"{tourname};{name};{email}";
-            await SendMessage("tour.booked", message);
+            var headers = new Dictionary<string, object>
+            {
+                { "subject", "tour" },
+                { "action", "booked" }
+            };
+
+            await SendMessage(headers, message);
 
             return Redirect($"/BookingConfirmed?tourname={tourname}&name={name}&email={email}");
         }
@@ -33,12 +39,18 @@ namespace ExploreCalifornia.WebApp.Controllers
             var cancelReason = Request.Form["reason"];
 
             var message = $"{tourname};{name};{email};{cancelReason}";
-            await SendMessage("tour.canceled", message);
+            var headers = new Dictionary<string, object>
+            {
+                { "subject", "tour" },
+                { "action", "canceled" }
+            };
+
+            await SendMessage(headers, message);
 
             return Redirect($"/BookingCanceled?tourname={tourname}&name={name}");
         }
 
-        private async Task SendMessage(string routingKey, string message)
+        private async Task SendMessage(IDictionary<string, object> headers, string message)
         {
             var factory = new ConnectionFactory();
             factory.Uri = new Uri("amqp://guest:guest@localhost:5672");
@@ -47,7 +59,8 @@ namespace ExploreCalifornia.WebApp.Controllers
 
             var bytes = Encoding.UTF8.GetBytes(message);
             var props = new BasicProperties();
-            await channel.BasicPublishAsync("webappExchange", routingKey, false, props, bytes);
+            props.Headers = headers;
+            await channel.BasicPublishAsync("webappExchange", "", false, props, bytes);
 
             await channel.CloseAsync();
             await connection.CloseAsync();
