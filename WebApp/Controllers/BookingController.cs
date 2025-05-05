@@ -26,6 +26,17 @@ namespace ExploreCalifornia.WebApp.Controllers
 
             await SendMessage(headers, message);
 
+            if (needsTransport)
+            {
+                var needsTransportHeaders = new Dictionary<string, object>
+                {
+                    { "subject", "transport" },
+                    { "action", "booked" }
+                };
+
+                SendMessage(needsTransportHeaders, message);
+            }
+
             return Redirect($"/BookingConfirmed?tourname={tourname}&name={name}&email={email}");
         }
 
