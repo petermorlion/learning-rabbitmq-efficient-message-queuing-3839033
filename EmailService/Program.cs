@@ -2,7 +2,7 @@
 using RabbitMQ.Client.Events;
 
 var factory = new ConnectionFactory();
-factory.Uri = new Uri("amqp://guest:guest@localhost:5672");
+factory.Uri = new Uri("amqp://emailservice:emailservice@localhost:5672");
 var connection = await factory.CreateConnectionAsync();
 var channel = await connection.CreateChannelAsync();
 

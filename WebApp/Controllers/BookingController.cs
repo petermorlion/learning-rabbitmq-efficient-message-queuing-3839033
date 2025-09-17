@@ -64,7 +64,7 @@ namespace ExploreCalifornia.WebApp.Controllers
         private async Task SendMessage(IDictionary<string, object> headers, string message)
         {
             var factory = new ConnectionFactory();
-            factory.Uri = new Uri("amqp://guest:guest@localhost:5672");
+            factory.Uri = new Uri("amqp://webapp:webapp@localhost:5672");
             var connection = await factory.CreateConnectionAsync();
             var channel = await connection.CreateChannelAsync();
 
