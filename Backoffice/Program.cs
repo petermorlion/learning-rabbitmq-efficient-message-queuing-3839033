@@ -22,7 +22,8 @@ consumer.ReceivedAsync += async (sender, eventArgs) =>
     var msg = System.Text.Encoding.UTF8.GetString(eventArgs.Body.ToArray());
     var subject = System.Text.Encoding.UTF8.GetString(eventArgs.BasicProperties.Headers["subject"] as byte[]);
     var action = System.Text.Encoding.UTF8.GetString(eventArgs.BasicProperties.Headers["action"] as byte[]);
-    Console.WriteLine($"{subject} {action} : ${msg}");
+    var userId = eventArgs.BasicProperties.UserId;
+    Console.WriteLine($"{userId} -> {subject} {action} : ${msg}");
 };
 
 await channel.BasicConsumeAsync("backOfficeQueue", true, consumer);

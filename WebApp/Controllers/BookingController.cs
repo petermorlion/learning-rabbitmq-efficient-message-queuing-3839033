@@ -71,6 +71,7 @@ namespace ExploreCalifornia.WebApp.Controllers
             var bytes = Encoding.UTF8.GetBytes(message);
             var props = new BasicProperties();
             props.Headers = headers;
+            props.UserId = "webapp";
             await channel.BasicPublishAsync("webappExchange", "", false, props, bytes);
 
             await channel.CloseAsync();
