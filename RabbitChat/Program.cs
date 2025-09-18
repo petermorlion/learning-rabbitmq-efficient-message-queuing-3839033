@@ -1,8 +1,12 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
+Console.WriteLine("Please specify a username");
+var username = Console.ReadLine();
+var password = username;
+
 var factory = new ConnectionFactory();
-factory.Uri = new Uri("amqp://guest:guest@localhost:5672");
+factory.Uri = new Uri($"amqp://{username}:{password}@localhost:5672");
 var connection = await factory.CreateConnectionAsync();
 var channel = await connection.CreateChannelAsync();
 
@@ -20,7 +24,8 @@ var consumer = new AsyncEventingBasicConsumer(channel);
 consumer.ReceivedAsync += async (sender, eventArgs) =>
 {
     var text = System.Text.Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-    Console.WriteLine(text);
+    var user = eventArgs.BasicProperties.UserId;
+    Console.WriteLine(user + ": " + text);
 };
 
 await channel.BasicConsumeAsync(queueName, true, consumer);
@@ -30,6 +35,7 @@ while (input != null)
 {
     var bytes = System.Text.Encoding.UTF8.GetBytes(input);
     var props = new BasicProperties();
+    props.UserId = username;
     await channel.BasicPublishAsync(exchangeName, chatRoomName, false, props, bytes);
     input = Console.ReadLine();
 }
