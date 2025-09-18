@@ -6,7 +6,12 @@ factory.Uri = new Uri("amqp://backoffice:backoffice@localhost:5672");
 var connection = await factory.CreateConnectionAsync();
 var channel = await connection.CreateChannelAsync();
 
-await channel.QueueDeclareAsync("backOfficeQueue", true, false, false);
+var dlxArguments = new Dictionary<string, object>
+{
+    {"x-dead-letter-exchange", "DLX"}
+};
+
+await channel.QueueDeclareAsync("backOfficeQueue", true, false, false, dlxArguments);
 var headers = new Dictionary<string, object>
 {
     { "subject", "tour" },
@@ -24,9 +29,10 @@ consumer.ReceivedAsync += async (sender, eventArgs) =>
     var action = System.Text.Encoding.UTF8.GetString(eventArgs.BasicProperties.Headers["action"] as byte[]);
     var userId = eventArgs.BasicProperties.UserId;
     Console.WriteLine($"{userId} -> {subject} {action} : ${msg}");
+    await channel.BasicRejectAsync(eventArgs.DeliveryTag, false);
 };
 
-await channel.BasicConsumeAsync("backOfficeQueue", true, consumer);
+await channel.BasicConsumeAsync("backOfficeQueue", false, consumer);
 
 Console.ReadLine();
 
